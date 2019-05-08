@@ -1,0 +1,40 @@
+{
+  "name": "luminosity-inverter",
+  "version": "1.0.0",
+  "description": "Takes theme files, such as CSS, and inverts any colors inside to the opposite luminosity.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Maxattax97/luminosity-inverter.git"
+  },
+  "keywords": [
+    "color",
+    "CIELab",
+    "RGB",
+    "HSV",
+    "HSL",
+    "CSS",
+    "style",
+    "luminosity",
+    "light",
+    "dark",
+    "bright",
+    "white",
+    "black"
+  ],
+  "author": "Max O'Cull",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/Maxattax97/luminosity-inverter/issues"
+  },
+  "homepage": "https://github.com/Maxattax97/luminosity-inverter#readme",
+  "dependencies": {
+    "culori": "^0.8.2",
+    "fs-extra": "^7.0.1",
+    "get-stdin": "^7.0.0",
+    "globby": "^9.2.0"
+  }
+}
