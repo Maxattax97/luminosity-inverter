@@ -13,9 +13,6 @@
     "test": "mocha",
     "all": "eslint . --fix && mocha"
   },
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/Maxattax97/luminosity-inverter.git"

@@ -6,18 +6,29 @@ const format = require('../index.js');
 describe('Main', () => {
   describe('integration', () => {
     it('should pass a basic integration test', async () => {
-      const result = await format({ dry: true, input: './test/dirty/integration-basic.scad' });
-      let correct = await fs.readFile('./test/clean/integration-basic.scad');
+      const result = await format({ dry: true, input: './test/light/simple.txt' });
+      let correct = await fs.readFile('./test/dark/simple.txt');
       correct = correct.toString();
       expect(result).to.be.a('array');
       expect(result[0]).to.be.a(typeof {});
       expect(result[0].source).to.be.a(typeof '');
       expect(result[0].formatted).to.be.a(typeof '');
-      expect(result[0].source).to.equal('./test/dirty/integration-basic.scad');
+      expect(result[0].source).to.equal('./test/light/simple.txt');
+      expect(result[0].formatted).to.equal(correct);
+    });
+    it('should invert and write NexT theme', async () => {
+      const result = await format({ input: './test/light/nextCompiled.css', output: './test/dark/nextCompiled.css' });
+      let correct = await fs.readFile('./test/dark/simple.txt');
+      correct = correct.toString();
+      expect(result).to.be.a('array');
+      expect(result[0]).to.be.a(typeof {});
+      expect(result[0].source).to.be.a(typeof '');
+      expect(result[0].formatted).to.be.a(typeof '');
+      expect(result[0].source).to.equal('./test/light/simple.txt');
       expect(result[0].formatted).to.equal(correct);
     });
   });
-  describe('custom configurations', () => {
+  describe.skip('custom configurations', () => {
     it('should follow the Google style', async () => {
       const result = await format({ dry: true, input: './test/dirty/integration-basic.scad', config: './test/configs/google-style' });
       let correct = await fs.readFile('./test/clean/style-google-integration-basic.scad');

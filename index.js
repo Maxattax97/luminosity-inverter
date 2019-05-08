@@ -5,6 +5,7 @@ const getStdin = require('get-stdin');
 const assert = require('assert');
 const globby = require('globby');
 const path = require('path');
+const culori = require('culori');
 
 let { argv } = require('yargs')
   .usage('Usage: $0 [options]')
@@ -28,152 +29,93 @@ let { argv } = require('yargs')
   .boolean('d')
   .describe('d', 'Perform a dry run, without writing')
   .help('h')
-  .alias('h', 'help')
+  .alias('h', 'help');
   // .default(argsDefault)
 
-let colorDictionary = {};
+String.prototype.replaceAll = function (str1, str2, ignore) {
+  return this.replace(new RegExp(str1.replace(/([\/\,\!\\\^\$\{\}\[\]\(\)\.\*\+\?\|\<\>\-\&])/g, '\\$&'), (ignore ? 'gi' : 'g')), (typeof (str2) === 'string') ? str2.replace(/\$/g, '$$$$') : str2);
+};
 
-async function collectColors(str) {
+const colorDictionary = {};
+
+function collectColors(str) {
   const codeRegex = /(#(?:[0-9a-f]{2}){2,4}|(#[0-9a-f]{3})|(rgb|hsl)a?\((-?\d+%?[,\s]+){2,3}\s*[\d\.]+%?\))/igm;
   const nameRegex = /\b(black|silver|gray|whitesmoke|maroon|red|purple|fuchsia|green|lime|olivedrab|yellow|navy|blue|teal|aquamarine|orange|aliceblue|antiquewhite|aqua|azure|beige|bisque|blanchedalmond|blueviolet|brown|burlywood|cadetblue|chartreuse|chocolate|coral|cornflowerblue|cornsilk|crimson|darkblue|darkcyan|darkgoldenrod|darkgray|darkgreen|darkgrey|darkkhaki|darkmagenta|darkolivegreen|darkorange|darkorchid|darkred|darksalmon|darkseagreen|darkslateblue|darkslategray|darkslategrey|darkturquoise|darkviolet|deeppink|deepskyblue|dimgray|dimgrey|dodgerblue|firebrick|floralwhite|forestgreen|gainsboro|ghostwhite|goldenrod|gold|greenyellow|grey|honeydew|hotpink|indianred|indigo|ivory|khaki|lavenderblush|lavender|lawngreen|lemonchiffon|lightblue|lightcoral|lightcyan|lightgoldenrodyellow|lightgray|lightgreen|lightgrey|lightpink|lightsalmon|lightseagreen|lightskyblue|lightslategray|lightslategrey|lightsteelblue|lightyellow|limegreen|linen|mediumaquamarine|mediumblue|mediumorchid|mediumpurple|mediumseagreen|mediumslateblue|mediumspringgreen|mediumturquoise|mediumvioletred|midnightblue|mintcream|mistyrose|moccasin|navajowhite|oldlace|olive|orangered|orchid|palegoldenrod|palegreen|paleturquoise|palevioletred|papayawhip|peachpuff|peru|pink|plum|powderblue|rosybrown|royalblue|saddlebrown|salmon|sandybrown|seagreen|seashell|sienna|skyblue|slateblue|slategray|slategrey|snow|springgreen|steelblue|tan|thistle|tomato|turquoise|violet|wheat|white|yellowgreen|rebeccapurple)\b/igm;
 
   let m = null;
   while ((m = codeRegex.exec(str)) !== null) {
-      if (m.index === codeRegex.lastIndex) {
-          codeRegex.lastIndex++;
-      }
-      
-      m.forEach((match, groupIndex) => {
-          console.log(`Found match, group ${groupIndex}: ${match}`);
-      });
+    if (m.index === codeRegex.lastIndex) {
+      codeRegex.lastIndex++;
+    }
+
+    colorDictionary[m[0]] = null;
+    // m.forEach((match, groupIndex) => {
+    //     console.log(`Found match, group ${groupIndex}: ${match}`);
+    // });
   }
-  
+
   m = null;
   while ((m = nameRegex.exec(str)) !== null) {
-      if (m.index === nameRegex.lastIndex) {
-          nameRegex.lastIndex++;
-      }
-      
-      m.forEach((match, groupIndex) => {
-          console.log(`Found match, group ${groupIndex}: ${match}`);
-      });
+    if (m.index === nameRegex.lastIndex) {
+      nameRegex.lastIndex++;
+    }
+
+    colorDictionary[m[0]] = null;
+    // m.forEach((match, groupIndex) => {
+    //     console.log(`Found match, group ${groupIndex}: ${match}`);
+    // });
   }
+
+  // console.log(colorDictionary);
 }
 
-// async function convertIncludesToClang(str) {
-//   // eslint-disable-next-line no-useless-escape
-//   const regex = /^\s*(include|use)\s*<([_\-\.\w\/]*)>;{0,1}\s*$/gm;
-//
-//   // {type: 'include' | 'use', path: 'cornucopia/../source.css'}
-//   const backup = [];
-//   let matches = regex.exec(str);
-//   let updated = str;
-//
-//   while (matches !== null) {
-//     if (matches.index === regex.lastIndex) {
-//       regex.lastIndex += 1;
-//     }
-//
-//     let entry = {};
-//     // eslint-disable-next-line no-loop-func
-//     matches.forEach((match, groupIndex) => {
-//       if (groupIndex === 0) {
-//         entry = {};
-//         entry.full = match;
-//       } else if (groupIndex === 1) {
-//         entry.type = match;
-//       } else if (groupIndex === 2) {
-//         entry.path = match;
-//         updated = updated.replace(entry.full.trim(), `#include <${entry.path}>`);
-//         backup.push(entry);
-//       }
-//     });
-//
-//     matches = regex.exec(str);
-//   }
-//
-//   return { result: updated, backup };
-// }
+function invertLuminosity(colorStr) {
+  const obj = culori.parse(colorStr);
+  const inverted = culori.converter('lab')(obj);
+  inverted.l = Math.abs(100 - inverted.l);
+  let orgMode = null;
 
-// async function addDocumentation(str) {
-//   return str;
-// }
+  if (colorStr.indexOf('#') !== -1) {
+    obj.mode = 'hex';
+  }
 
-// async function convertIncludesTocss(str, backup) {
-//   // eslint-disable-next-line no-useless-escape
-//   const regex = /^\s*#include\s*<([_\-\.\w\/]*)>;{0,1}\s*$/gmi;
-//   let fixed = str;
-//   let matches = regex.exec(str);
-//
-//   while (matches !== null) {
-//     if (matches.index === regex.lastIndex) {
-//       regex.lastIndex += 1;
-//     }
-//
-//     let entry = {};
-//     // eslint-disable-next-line no-loop-func
-//     matches.forEach((match, groupIndex) => {
-//       if (groupIndex === 0) {
-//         entry = { full: match };
-//       } else if (groupIndex === 1) {
-//         entry.path = match;
-//
-//         // Must traverse in order.
-//         for (let i = 0; i < backup.length; i += 1) {
-//           if (backup[i].path === entry.path) {
-//             // Replace only _a single occurance_.
-//             fixed = fixed.replace(new RegExp(entry.full.trim(), ''), `${backup[i].type} <${backup[i].path}>`, '');
-//
-//             // Splice out the one we just performed.
-//             backup.splice(i, 1);
-//             break;
-//           }
-//         }
-//       }
-//     });
-//
-//     matches = regex.exec(str);
-//   }
-//
-//   return fixed;
-// }
+  switch (obj.mode) {
+    case 'rgb':
+    case 'hsl':
+      orgMode = culori.formatter('rgb')(culori.clamp('rgb')(inverted));
+      break;
+    default:
+      orgMode = culori.formatter('hex')(culori.clamp('rgb')(inverted));
+  }
+
+  // console.log(`${colorStr} -> ${inverted.l}, ${inverted.a}, ${inverted.b} -> ${orgMode}`);
+  return orgMode;
+}
+
+function transformDictionary() {
+  Object.keys(colorDictionary).forEach((key) => {
+    if (!colorDictionary[key]) {
+      colorDictionary[key] = invertLuminosity(key);
+    }
+  });
+}
+
+function translateColors(str) {
+  Object.keys(colorDictionary).forEach((key) => {
+    // str = str.split(key).join(colorDictionary[key]);
+    str = str.replaceAll(key, colorDictionary[key]);
+  });
+
+  return str;
+}
 
 async function invert(str) {
   try {
     assert(str, 'Did not receive string to format');
 
-    // eslint-disable-next-line prefer-const
-    // let { result, backup } = await convertIncludesToClang(str);
-    // assert(result, 'Failed to convert CSS includes to Clang includes');
-
-    // if (argv.javadoc) {
-    //   result = await addDocumentation(result);
-    //   assert(result, 'Javadoc failed to format source');
-    // }
-
-    // const { path: tmpFilePath, cleanup: cleanupTmpFile } = await tmp.file({ dir: tmpDir.path, postfix: '.css' });
-
-    // const virtualFile = {
-    //   path: tmpFilePath,
-    // };
-    // await fs.writeFile(virtualFile.path, result);
-
-    // result = await getClangFormattedString(virtualFile);
-    // assert(result, 'Clang failed to format source');
-
-    // result = await convertIncludesTocss(result, backup);
-    // assert(result, 'Failed to convert Clang includes to CSS includes');
-
-    // try {
-    //   await fs.remove(virtualFile.path);
-    // } catch (err) {
-    //   console.error('Failed to remove temporary input file', err);
-    // }
-
-    // cleanupTmpFile();
-    
     collectColors(str);
-    let result = str;
+    transformDictionary();
+    const result = translateColors(str);
 
     return result;
   } catch (err) {
@@ -255,7 +197,7 @@ async function main(params) {
     if (argv.input) {
       await Promise.all(argv.input.map(async (file) => {
         try {
-          const result = await feed(file, argv.output, tmpDir);
+          const result = await feed(file, argv.output);
           resultList.push({ source: file, formatted: result });
         } catch (err) {
           console.error('Failed to feed input files', err);
@@ -264,7 +206,7 @@ async function main(params) {
     } else {
       // Use stdin.
       try {
-        const result = await feed(null, argv.output, tmpDir);
+        const result = await feed(null, argv.output);
         resultList.push({ source: 'stdin', formatted: result });
       } catch (err) {
         console.error('Failed to feed stdin', err);
